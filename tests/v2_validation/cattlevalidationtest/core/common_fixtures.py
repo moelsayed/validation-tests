@@ -2989,24 +2989,18 @@ def add_digital_ocean_hosts(client, count, size="2gb",
     os_version = "ubuntu-16-04-x64"
     if docker_version == "1.10":
         os_version = "ubuntu-14-04-x64"
-    active = 0
-    while active < count:
+    for i in range(0, count):
         create_args = {"hostname": random_str(),
                        "digitaloceanConfig": {"accessToken": do_access_key,
                                               "size": size,
                                               "image": os_version},
                        "engineInstallUrl": docker_install_url}
         host = client.create_host(**create_args)
-        try:
-            host = client.wait_success(host, timeout=DEFAULT_MACHINE_TIMEOUT)
-            assert host.state == 'active'
-            active += 1
-            hosts.append(host)
-        except:
-            host = client.wait_success(
-                        client.delete(host),
-                        timeout=DEFAULT_MACHINE_TIMEOUT)
-            assert host.state == 'removed'
+        hosts.append(host)
+
+    for host in hosts:
+        host = client.wait_success(host, timeout=DEFAULT_MACHINE_TIMEOUT)
+        assert host.state == 'active'
     return hosts
 
 
