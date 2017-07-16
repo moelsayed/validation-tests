@@ -156,7 +156,7 @@ def test_upgrade_validate_k8s(kube_hosts, rancher_cli_container):
     }
     for i in range(2, upgrade_loops):
         force_upgrade_stack("ipsec")
-        waitfor_infra_stack()
+        waitfor_infra_stacks()
         time.sleep(120)
         validate_kubectl()
         assert check_k8s_dashboard()
