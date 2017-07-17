@@ -2058,9 +2058,19 @@ def check_round_robin_access_lb_ip(container_names, lb_ip, port,
 
     for n in range(0, len(con_hostname)):
         if headers is not None:
-            r = requests.get(url, headers=headers)
+            try:
+                r = requests.get(url, headers=headers)
+            except requests.ConnectionError:
+                logger.info("Connection Error - " + url)
+                time.sleep(5)
+                continue
         else:
-            r = requests.get(url)
+            try:
+                r = requests.get(url)
+            except requests.ConnectionError:
+                logger.info("Connection Error - " + url)
+                time.sleep(5)
+                continue
         response = r.text.strip("\n")
         logger.info(response)
         r.close()
@@ -4062,7 +4072,12 @@ def check_round_robin_access_k8s_service(container_names, lb_ip, port,
     logger.info(url)
 
     for n in range(0, 20):
-        r = requests.get(url)
+        try:
+            r = requests.get(url)
+        except requests.ConnectionError:
+            logger.info("Connection Error - " + url)
+            time.sleep(5)
+            continue
         response = r.text.strip("\n")
         logger.info(response)
         r.close()
