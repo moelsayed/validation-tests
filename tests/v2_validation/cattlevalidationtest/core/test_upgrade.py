@@ -218,7 +218,7 @@ def modify_stack(input_config):
     # Scale the RC
     get_response = execute_kubectl_cmds(
         "scale rc nginx --replicas=3 --namespace="+namespace)
-
+    time.sleep(60)
     get_response = execute_kubectl_cmds(
         "get rc/nginx -o json --namespace="+namespace)
     rc = json.loads(get_response)
@@ -254,7 +254,7 @@ def modify_stack(input_config):
     get_response = execute_kubectl_cmds(
         "scale rc "+rc_name1+" --replicas=3 --namespace="+namespace)
     waitfor_pods(selector=selector1, namespace=namespace, number=3)
-
+    time.sleep(60)
     pod_new_names = get_pod_names_for_selector(selector1, namespace, scale=3)
 
     # Check if the ingress works with the new pods
