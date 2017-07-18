@@ -84,9 +84,15 @@ def waitfor_infra_stacks():
 
 def validate_kubectl():
     # make sure that kubectl is working
-    get_response = execute_kubectl_cmds("get nodes -o json")
-    nodes = json.loads(get_response)
-    assert len(nodes['items']) == kube_host_count
+    started = time.time()
+    while time.time() - started > 30:
+        get_response = execute_kubectl_cmds("get nodes -o json")
+        nodes = json.loads(get_response)
+        if len(nodes['items']) == kube_host_count:
+            logger.info("hosts found after: " + str(time.time() - started))
+            assert True
+        time.sleep(2)
+    assert False
 
 
 def validate_helm():
