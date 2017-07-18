@@ -89,8 +89,13 @@ def validate_kubectl():
         get_response = execute_kubectl_cmds("get nodes -o json")
         nodes = json.loads(get_response)
         if len(nodes['items']) == kube_host_count:
-            logger.info("hosts found after: " + str(time.time() - started))
-            return True
+            ready_flag = True
+            for node in nodes['items']:
+                if node['status']['conditions'][3]['status'] != "True":
+                    ready_flag = False
+            if ready_flag:
+                logger.info("hosts found after: " + str(time.time() - started))
+                return True
         time.sleep(2)
     return False
 
