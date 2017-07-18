@@ -2081,11 +2081,21 @@ def check_round_robin_access_lb_ip(container_names, lb_ip, port,
     logger.info(con_hostname_ordered)
 
     i = 0
-    for n in range(0, 10):
+    for n in range(0, 20):
         if headers is not None:
-            r = requests.get(url, headers=headers)
+            try:
+                r = requests.get(url, headers=headers)
+            except requests.ConnectionError:
+                logger.info("Connection Error - " + url)
+                time.sleep(5)
+                continue
         else:
-            r = requests.get(url)
+            try:
+                r = requests.get(url)
+            except requests.ConnectionError:
+                logger.info("Connection Error - " + url)
+                time.sleep(5)
+                continue
         response = r.text.strip("\n")
         r.close()
         logger.info("Response received-" + response)
