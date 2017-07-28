@@ -37,9 +37,7 @@ def waitfor_infra_stacks():
             "ipsec",
             "network-services",
             "healthcheck",
-            "kubernetes",
-            "kubernetes-ingress-lbs",
-            "kubernetes-loadbalancers"
+            "kubernetes"
             ]
     for stack_name in infra_stacks:
         env = k8s_client.list_stack(name=stack_name)
