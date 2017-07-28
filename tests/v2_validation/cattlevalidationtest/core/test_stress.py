@@ -86,7 +86,13 @@ def validate_kubectl():
     # make sure that kubectl is working
     started = time.time()
     while time.time() - started < 1200:
-        get_response = execute_kubectl_cmds("get nodes -o json")
+        while True:
+            try:
+                get_response = execute_kubectl_cmds("get nodes -o json")
+                break
+            except:
+                time.sleep(2)
+                continue
         nodes = json.loads(get_response)
         if len(nodes['items']) == kube_host_count:
             ready_flag = True
