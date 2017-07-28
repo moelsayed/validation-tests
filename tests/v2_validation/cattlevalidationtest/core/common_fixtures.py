@@ -2796,7 +2796,7 @@ def execute_kubectl_cmds(command, expected_resps=None, file_name=None,
     ssh.connect(
         kubectl_client_con["host"].ipAddresses()[0].address, username="root",
         password="root", port=int(kubectl_client_con["port"]))
-    print cmd
+    # print cmd
 
     stdin, stdout, stderr = ssh.exec_command(cmd)
     response = stdout.readlines()
@@ -2805,7 +2805,7 @@ def execute_kubectl_cmds(command, expected_resps=None, file_name=None,
     str_response = ""
     for resp in response:
         str_response += resp
-    print "Obtained Response: " + str_response
+    # print "Obtained Response: " + str_response
 
     # Validate Expected Response
     if expected_resps is not None:
