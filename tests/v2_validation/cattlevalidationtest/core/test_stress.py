@@ -85,12 +85,13 @@ def waitfor_infra_stacks():
 def validate_kubectl():
     # make sure that kubectl is working
     started = time.time()
-    while time.time() - started < 600:
+    while time.time() - started < 1200:
         get_response = execute_kubectl_cmds("get nodes -o json")
         nodes = json.loads(get_response)
         if len(nodes['items']) == kube_host_count:
             ready_flag = True
             for node in nodes['items']:
+                logger.info("node name: " + str(node['metadata']['name']))
                 if node['status']['conditions'][3]['status'] != "True":
                     ready_flag = False
             if ready_flag:
@@ -168,7 +169,7 @@ def test_upgrade_validate_k8s(kube_hosts, rancher_cli_container):
     for i in range(2, upgrade_loops):
         force_upgrade_stack("ipsec")
         waitfor_infra_stacks()
-        time.sleep(300)
+        time.sleep(600)
         assert validate_kubectl()
         assert check_k8s_dashboard()
         modify_stack(input_config)
