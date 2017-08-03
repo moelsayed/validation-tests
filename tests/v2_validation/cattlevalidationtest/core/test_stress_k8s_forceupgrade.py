@@ -1,6 +1,5 @@
 from common_fixtures import *  # NOQA
 from test_upgrade import *  # NOQA
-import jinja2
 import os
 
 upgrade_loops = int(os.environ.get("UPGRADE_LOOPS", "10"))
@@ -12,15 +11,42 @@ if_stress_testing = pytest.mark.skipif(
 
 def force_upgrade_stack(stack_name):
     k8s_client = kubectl_client_con["k8s_client"]
-    stack = k8s_client.list_stack(name=stack_name)[0]
-    stack_config = stack.exportconfig()
-    docker_compose = stack_config.dockerComposeConfig
-    rancher_compose = stack_config.rancherComposeConfig
-    cli_command = "--env "+PROJECT_ID +" up --force-upgrade --confirm-upgrade " + \
-                  "-d -s " + stack_name + " --batch-size 1 --interval 1000"
-    execute_rancher_cli(k8s_client, stack_name, cli_command,
-                        docker_compose=docker_compose,
-                        rancher_compose=rancher_compose,timeout=1200)
+    access_key = k8s_client._access_key
+    secret_key = k8s_client._secret_key
+
+    force_up_commands = [
+        "export RANCHER_URL=" + rancher_server_url(),
+        "export RANCHER_ACCESS_KEY=" + access_key,
+        "export RANCHER_SECRET_KEY=" + secret_key,
+        "export RANCHER_ENVIRONMENT=" + PROJECT_ID,
+        "cd rancher-v*",
+        "./rancher export " + stack_name,
+        "./rancher up --force-upgrade --confirm-upgrade " +
+        "-d -s " + stack_name + " --batch-size 1 " +
+        "--interval 1000 -f " + stack_name + "/docker-compose.yml" +
+        " --rancher-file=" + stack_name + "/rancher-compose.yml"
+    ]
+
+    logger.info("Final command: " + " ; ".join(force_up_commands))
+
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    try:
+        ssh.connect(
+            rancher_cli_con["host"].ipAddresses()[0].address, username="root",
+            password="root", port=int(rancher_cli_con["port"]))
+    except Exception as e:
+        logger.info("SSH Connection Error")
+        raise e
+    stdin, stdout, stderr = ssh.exec_command(
+                                            " ; ".join(force_up_commands),
+                                            timeout=1200)
+    response = stdout.readlines()
+    error = stderr.readlines()
+    logger.info(response)
+    logger.info(error)
+
     env = k8s_client.list_stack(name=stack_name)
     assert len(env) == 1
     environment = env[0]
